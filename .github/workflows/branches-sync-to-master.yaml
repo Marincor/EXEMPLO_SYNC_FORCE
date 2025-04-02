@@ -8,6 +8,9 @@ on:
 jobs:
   create-sync-prs:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write  # Permite criar PRs
+      contents: write       # Permite acesso ao repositório
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
