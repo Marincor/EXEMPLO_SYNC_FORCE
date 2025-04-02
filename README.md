@@ -7,4 +7,3 @@
 
 ## Fluxo de validação das PRs para a branch homol:
 ![alt text](image.png)
-

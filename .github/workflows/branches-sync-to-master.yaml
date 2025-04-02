@@ -1,43 +1,48 @@
 name: Sync Hotfix to Homolog
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
       - master
 
 jobs:
   create-sync-prs:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Check if commits from master are missing in homolog
-        id: check_commits
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Fetch and Configure Git
         run: |
-          # Obtém commits na master que não estão na homolog, ignorando merges
-          missing_commits=$(git log --oneline --no-merges homolog..master)
+          git fetch --all --prune
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Marincor/EXEMPLO_SYNC_FORCE.git
 
-          if [[ -z "$missing_commits" ]]; then
-            echo "No missing commits. Skipping PR creation."
-            echo "create_pr=false" >> $GITHUB_ENV
-          else
-            echo "Missing commits detected. Proceeding with PR creation."
-            echo "create_pr=true" >> $GITHUB_ENV
-          fi
+      - name: Create Temporary Branch
+        run: |
+          # Cria uma nova branch a partir da master
+          git checkout master
+          git pull
+          git checkout -b sync-hotfix-to-homolog
+          git push origin sync-hotfix-to-homolog --force  # Força atualização remota
 
-      - name: Create PR to Homolog
-        if: env.create_pr == 'true'
-        uses: peter-evans/create-pull-request@v5
+      - name: Create Sync PR
+        uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: hotfix-to-homolog
+          token: ${{ secrets.PAT_TOKEN }}
+          branch: sync-hotfix-to-homolog  # Nova branch criada
           base: homolog
           title: "Sync hotfix from master to homolog"
           body: "Automated PR to sync hotfixes from master to homolog."
           labels: "automated,hotfix"
+          reviewers: Marincor
+          draft: false
+          # Ignora verificações de diferença entre branches
+          allow-empty-commits: true
