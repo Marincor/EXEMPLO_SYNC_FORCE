@@ -16,7 +16,11 @@ jobs:
 
       - name: Fetch all branches
         run: |
-          git fetch --all --prune --unshallow  # Garante que todas as branches estão completas
+          if git rev-parse --is-shallow-repository | grep -q "true"; then
+            git fetch --all --prune --unshallow
+          else
+            git fetch --all --prune
+          fi
           git checkout master
           git pull origin master  # Garante que estamos na última versão da master
           git checkout -B homolog origin/homolog || echo "Branch homolog já existe"
