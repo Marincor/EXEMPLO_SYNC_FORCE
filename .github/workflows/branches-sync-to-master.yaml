@@ -47,10 +47,10 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          source_branch: master
-          destination_branch: homolog
-          pr_title: "Sync hotfix from master to homolog"
-          pr_body: "Automated PR to sync hotfixes from master to homolog."
-          pr_label: "automated,hotfix"
-          pr_reviewer: "Marincor"  # Substitua pelo seu usuário/revisor
-          pr_draft: false
+          branch: master
+          base: homolog
+          title: "Sync hotfix from master to homolog"
+          body: "Automated PR to sync hotfixes from master to homolog."
+          labels: "automated,hotfix"
+          reviewers: Marincor
+          draft: false
