@@ -3,54 +3,44 @@ name: Sync Hotfix to Homolog
 on:
   push:
     branches:
-      - master  # Agora roda quando algo novo é enviado para a master
+      - master
 
 jobs:
   create-sync-prs:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write  # Permite criar PRs
-      contents: write       # Permite acesso ao repositório
+      pull-requests: write
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Obtém todo o histórico do repositório
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Fetch all branches
+      - name: Fetch and Configure Git
         run: |
-          if git rev-parse --is-shallow-repository | grep -q "true"; then
-            git fetch --all --prune --unshallow
-          else
-            git fetch --all --prune
-          fi
-          git checkout master
-          git pull origin master  # Garante que estamos na última versão da master
-          git checkout -B homolog origin/homolog || echo "Branch homolog já existe"
+          git fetch --all --prune
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Marincor/EXEMPLO_SYNC_FORCE.git
 
-      - name: Check if commits from master are missing in homolog
-        id: check_commits
+      - name: Create Temporary Branch
         run: |
-          # Conta commits reais da master que ainda não estão na homolog, ignorando merges
-          missing_commits=$(git rev-list --no-merges --count homolog..master)
-
-          if [[ "$missing_commits" -eq 0 ]]; then
-            echo "No missing commits. Skipping PR creation."
-            echo "create_pr=false" >> $GITHUB_ENV
-          else
-            echo "Missing commits detected. Proceeding with PR creation."
-            echo "create_pr=true" >> $GITHUB_ENV
-          fi
+          # Cria uma nova branch a partir da master
+          git checkout -b sync-hotfix-to-homolog
+          git push origin sync-hotfix-to-homolog --force  # Força atualização remota
 
       - name: Create Sync PR
-        if: env.create_pr == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          branch: master
+          branch: sync-hotfix-to-homolog  # Nova branch criada
           base: homolog
           title: "Sync hotfix from master to homolog"
           body: "Automated PR to sync hotfixes from master to homolog."
           labels: "automated,hotfix"
           reviewers: Marincor
           draft: false
+          # Ignora verificações de diferença entre branches
+          allow-empty-commits: true
