@@ -46,7 +46,7 @@ jobs:
         if: env.create_pr == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.PAT_TOKEN }}
           source_branch: master
           destination_branch: homolog
           pr_title: "Sync hotfix from master to homolog"
