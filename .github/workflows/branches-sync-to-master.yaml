@@ -50,7 +50,7 @@ jobs:
         if: env.create_pr == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
           branch: sync-hotfix-to-homolog
           base: homolog
           title: "Sync hotfix from master to homolog"
