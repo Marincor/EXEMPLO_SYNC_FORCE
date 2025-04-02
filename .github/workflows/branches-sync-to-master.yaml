@@ -28,6 +28,8 @@ jobs:
       - name: Create Temporary Branch
         run: |
           # Cria uma nova branch a partir da master
+          git checkout master
+          git pull
           git checkout -b sync-hotfix-to-homolog
           git push origin sync-hotfix-to-homolog --force  # Força atualização remota
 
