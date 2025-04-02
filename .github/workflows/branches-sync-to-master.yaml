@@ -15,18 +15,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Necessário para obter todas as branches
+          fetch-depth: 0  # Pega todo o histórico do repositório
 
-      - name: Fetch homolog branch
-        run: git fetch origin homolog  # Garante que a branch homolog está disponível
+      - name: Fetch all branches
+        run: |
+          git fetch --all  # Garante que todas as branches remotas estejam disponíveis
+          git checkout -B homolog origin/homolog || echo "Branch homolog já existe"
 
       - name: Check if commits from master are missing in homolog
         id: check_commits
         run: |
-          # Obtém commits reais da master que ainda não estão na homolog, ignorando merges
-          missing_commits=$(git log --oneline --no-merges origin/homolog..origin/master)
+          # Conta commits reais da master que ainda não estão na homolog, ignorando merges
+          missing_commits=$(git rev-list --no-merges --count homolog..master)
 
-          if [[ -z "$missing_commits" ]]; then
+          if [[ "$missing_commits" -eq 0 ]]; then
             echo "No missing commits. Skipping PR creation."
             echo "create_pr=false" >> $GITHUB_ENV
           else
