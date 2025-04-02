@@ -39,14 +39,18 @@ jobs:
             echo "create_pr=true" >> $GITHUB_ENV
           fi
 
-      - name: Create Sync Branch
+      - name: Create Sync PR
         if: env.create_pr == 'true'
-        run: |
-          git checkout -b sync-hotfix-to-homolog
-          git rebase master
-          # Adicione esta linha para usar o PAT_TOKEN no push
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Marincor/EXEMPLO_SYNC_FORCE.git
-          git push origin sync-hotfix-to-homolog --force
+        uses: repo-sync/pull-request@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}  # Explicitamente usa o PAT
+          source_branch: master
+          destination_branch: homolog
+          pr_title: "Sync hotfix from master to homolog"
+          pr_body: "Automated PR to sync hotfixes from master to homolog."
+          pr_label: "automated,hotfix"
+          pr_reviewer: "Marincor"  # Substitua pelo seu usuário/revisor
+          pr_draft: false
 
       - name: Create PR to Homolog
         if: env.create_pr == 'true'
