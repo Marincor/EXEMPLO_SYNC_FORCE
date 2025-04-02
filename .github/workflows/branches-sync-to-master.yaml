@@ -1,0 +1,43 @@
+name: Sync Hotfix to Homolog
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+
+jobs:
+  create-sync-prs:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check if commits from master are missing in homolog
+        id: check_commits
+        run: |
+          # Obtém commits na master que não estão na homolog, ignorando merges
+          missing_commits=$(git log --oneline --no-merges homolog..master)
+
+          if [[ -z "$missing_commits" ]]; then
+            echo "No missing commits. Skipping PR creation."
+            echo "create_pr=false" >> $GITHUB_ENV
+          else
+            echo "Missing commits detected. Proceeding with PR creation."
+            echo "create_pr=true" >> $GITHUB_ENV
+          fi
+
+      - name: Create PR to Homolog
+        if: env.create_pr == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: hotfix-to-homolog
+          base: homolog
+          title: "Sync hotfix from master to homolog"
+          body: "Automated PR to sync hotfixes from master to homolog."
+          labels: "automated,hotfix"

@@ -1,0 +1,27 @@
+name: Check Branch Sync
+
+on:
+  pull_request:
+    branches:
+      - homolog
+
+jobs:
+  check-sync-with-master:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if Branch is Behind Master (Ignoring Merges)
+        run: |
+          git fetch origin master
+          
+          # Obtém commits reais da master que ainda não estão na homolog
+          missing_commits=$(git log --oneline --no-merges HEAD..origin/master)
+
+          if [[ -n "$missing_commits" ]]; then
+            echo "A branch homolog está dessincronizada com commits reais da master! Atualize antes de prosseguir."
+            exit 1
+          fi
