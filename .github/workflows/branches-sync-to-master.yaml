@@ -1,25 +1,24 @@
 name: Sync Hotfix to Homolog
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
-      - master
+      - master  # Agora roda quando algo novo é enviado para a master
 
 jobs:
   create-sync-prs:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Pega todo o histórico do repositório
+          fetch-depth: 0  # Obtém todo o histórico do repositório
 
       - name: Fetch all branches
         run: |
-          git fetch --all  # Garante que todas as branches remotas estejam disponíveis
+          git fetch --all --prune --unshallow  # Garante que todas as branches estão completas
+          git checkout master
+          git pull origin master  # Garante que estamos na última versão da master
           git checkout -B homolog origin/homolog || echo "Branch homolog já existe"
 
       - name: Check if commits from master are missing in homolog
@@ -36,12 +35,19 @@ jobs:
             echo "create_pr=true" >> $GITHUB_ENV
           fi
 
+      - name: Create Sync Branch
+        if: env.create_pr == 'true'
+        run: |
+          git checkout -b sync-hotfix-to-homolog
+          git rebase master  # Garante que a nova branch está sincronizada com a master
+          git push origin sync-hotfix-to-homolog --force
+
       - name: Create PR to Homolog
         if: env.create_pr == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: hotfix-to-homolog
+          branch: sync-hotfix-to-homolog
           base: homolog
           title: "Sync hotfix from master to homolog"
           body: "Automated PR to sync hotfixes from master to homolog."
