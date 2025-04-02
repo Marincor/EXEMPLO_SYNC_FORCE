@@ -44,9 +44,9 @@ jobs:
 
       - name: Create Sync PR
         if: env.create_pr == 'true'
-        uses: repo-sync/pull-request@v2
+        uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.PAT_TOKEN }}  # Explicitamente usa o PAT
+          token: ${{ secrets.PAT }}
           source_branch: master
           destination_branch: homolog
           pr_title: "Sync hotfix from master to homolog"
@@ -54,14 +54,3 @@ jobs:
           pr_label: "automated,hotfix"
           pr_reviewer: "Marincor"  # Substitua pelo seu usuário/revisor
           pr_draft: false
-
-      - name: Create PR to Homolog
-        if: env.create_pr == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.PAT_TOKEN }}
-          branch: sync-hotfix-to-homolog
-          base: homolog
-          title: "Sync hotfix from master to homolog"
-          body: "Automated PR to sync hotfixes from master to homolog."
-          labels: "automated,hotfix"
