@@ -43,7 +43,9 @@ jobs:
         if: env.create_pr == 'true'
         run: |
           git checkout -b sync-hotfix-to-homolog
-          git rebase master  # Garante que a nova branch está sincronizada com a master
+          git rebase master
+          # Adicione esta linha para usar o PAT_TOKEN no push
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Marincor/EXEMPLO_SYNC_FORCE.git
           git push origin sync-hotfix-to-homolog --force
 
       - name: Create PR to Homolog
